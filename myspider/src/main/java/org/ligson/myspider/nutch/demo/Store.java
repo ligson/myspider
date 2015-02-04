@@ -3,6 +3,11 @@ package org.ligson.myspider.nutch.demo;
 import java.io.File;
 import java.net.URL;
 
+/***
+ * 简单的存储管理
+ * @author ligson
+ *
+ */
 public class Store {
 	private static Store store;
 	private URL url;

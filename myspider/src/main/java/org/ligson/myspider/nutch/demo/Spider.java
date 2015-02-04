@@ -29,6 +29,11 @@ import org.apache.tika.sax.BodyContentHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/***
+ * 抓取机器人robot
+ * @author ligson
+ *
+ */
 public class Spider implements Runnable {
 	private String id;
 	private String urlPattern;
@@ -144,7 +149,7 @@ public class Spider implements Runnable {
 					HttpGet httpGet = new HttpGet(inputUrl);
 					HttpResponse httpResponse = httpClient.execute(httpGet);
 					if (!httpResponse.getLastHeader("Content-Type").getValue()
-							.equals("text/html")) {
+							.contains("text/html")) {
 						targetFile.delete();
 						return;
 					}

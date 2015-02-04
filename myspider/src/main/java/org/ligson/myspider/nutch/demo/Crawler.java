@@ -2,7 +2,11 @@ package org.ligson.myspider.nutch.demo;
 
 import java.util.ArrayList;
 import java.util.List;
-
+/***
+ * 抓取控制
+ * @author ligson
+ *
+ */
 public class Crawler {
 	private Store store;
 	private int threadNum;

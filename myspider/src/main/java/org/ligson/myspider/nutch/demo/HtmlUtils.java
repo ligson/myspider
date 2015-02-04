@@ -21,7 +21,11 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
-
+/***
+ * html工具
+ * @author ligson
+ *
+ */
 public class HtmlUtils {
 	public static String TextExtractor(Node root) {
 		// 若是文本节点的话，直接返回
