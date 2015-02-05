@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 
 /***
  * 抓取机器人robot
+ * 
  * @author ligson
  *
  */
@@ -130,12 +131,13 @@ public class Spider implements Runnable {
 			targetFile = new File(dir, url.getFile());
 		}
 
-		if (!targetFile.getParentFile().exists() || targetFile.getParentFile().isFile()) {
+		if (!targetFile.getParentFile().exists()
+				|| targetFile.getParentFile().isFile()) {
 			targetFile.getParentFile().mkdirs();
 		}
-		logger.debug("抓取链接:" + inputUrl + ",存储位置:" + targetFile.getAbsolutePath());
+		logger.debug("抓取链接:" + inputUrl + ",存储位置:"
+				+ targetFile.getAbsolutePath());
 
-		String locationHeader = null;
 		if (!targetFile.exists()) {
 			try {
 				if (!targetFile.getParentFile().exists()) {
@@ -145,76 +147,52 @@ public class Spider implements Runnable {
 					logger.error("父文件夹创建失败!" + targetFile.getAbsolutePath());
 				}
 				if (targetFile.createNewFile()) {
-					HttpClient httpClient = new DefaultHttpClient();
-					HttpGet httpGet = new HttpGet(inputUrl);
-					HttpResponse httpResponse = httpClient.execute(httpGet);
-					if (!httpResponse.getLastHeader("Content-Type").getValue()
-							.contains("text/html")) {
+
+					String text = HtmlUtils.getHtmlFileContent(inputUrl);
+					if (text != null) {
+						FileUtils.write(targetFile, text);
+					} else {
 						targetFile.delete();
-						return;
 					}
-					if (httpResponse.getLastHeader("Location") != null) {
-						locationHeader = httpResponse.getLastHeader("Location")
-								.getValue();
-					}
-					HttpEntity entity = httpResponse.getEntity();
-					Charset charset = ContentType.getOrDefault(entity)
-							.getCharset();
-					if (charset == null) {
-						charset = Charset.forName("UTF-8");
-					}
-					String text = EntityUtils.toString(entity, charset);
 
-					FileUtils.write(targetFile, text);
-
-					// detecting the file type
-					BodyContentHandler handler = new BodyContentHandler();
-					Metadata metadata = new Metadata();
-					FileInputStream inputstream = new FileInputStream(targetFile);
-					ParseContext pcontext = new ParseContext();
-
-					// Html parser
-					HtmlParser htmlparser = new HtmlParser();
-					htmlparser.parse(inputstream, handler, metadata, pcontext);
 					/*
-					 * System.out.println("Contents of the document:" +
-					 * handler.toString());
-					 * System.out.println("Metadata of the document:"); String[]
-					 * metadataNames = metadata.names();
+					 * BodyContentHandler handler = new BodyContentHandler();
+					 * Metadata metadata = new Metadata(); FileInputStream
+					 * inputstream = new FileInputStream(targetFile);
+					 * ParseContext pcontext = new ParseContext();
 					 * 
-					 * for (String name : metadataNames) {
-					 * System.out.println(name + ":   " + metadata.get(name)); }
+					 * 
+					 * HtmlParser htmlparser = new HtmlParser();
+					 * htmlparser.parse(inputstream, handler, metadata,
+					 * pcontext);
 					 */
 
 				}
-				
-				logger.debug("抓取URL成功!"+inputUrl);
+
+				logger.debug("抓取URL成功!" + inputUrl);
 			} catch (UnknownHostException e) {
 				logger.error("链接打开失败:" + inputUrl);
 			} catch (Exception e) {
 				logger.error("抓取网页(" + inputUrl + ")失败,存储位置："
-						+ targetFile.getAbsolutePath() + ";错误信息:" + e.getMessage());
+						+ targetFile.getAbsolutePath() + ";错误信息:"
+						+ e.getMessage());
 			}
 		}
 		if (!targetFile.exists() || targetFile.isDirectory()) {
 			return;
 		}
 		String baseUrl = inputUrl;
-		if (locationHeader != null) {
-			baseUrl = locationHeader;
-		}
+
 		List<String> hrefList = HtmlUtils.getAllHrefValues(baseUrl, targetFile);
 		// Pattern pattern = Pattern.compile(urlPattern);
 		for (String href : hrefList) {
 			if (href.matches(urlPattern)) {
 				Spider spider = new Spider(UUID.randomUUID().toString(),
 						urlPattern, href, store, getCrawler());
-				Thread thread = new Thread(spider);
 
-				if (getCrawler().addSpider(spider, thread)) {
-					thread.start();
+				if (getCrawler().getMonitor().addSpider(spider)) {
+					sonSpiders.add(spider);
 				} else {
-					thread = null;
 					spider = null;
 				}
 			}

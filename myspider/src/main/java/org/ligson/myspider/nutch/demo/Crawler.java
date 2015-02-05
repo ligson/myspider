@@ -2,8 +2,10 @@ package org.ligson.myspider.nutch.demo;
 
 import java.util.ArrayList;
 import java.util.List;
+
 /***
  * 抓取控制
+ * 
  * @author ligson
  *
  */
@@ -14,6 +16,7 @@ public class Crawler {
 	private String urlPattern;
 	private List<Thread> threads = new ArrayList<Thread>();
 	private List<Spider> spiders = new ArrayList<Spider>();
+	private CrawlerQueueMonitor monitor;
 
 	public List<Thread> getThreads() {
 		return threads;
@@ -63,6 +66,14 @@ public class Crawler {
 		this.urlPattern = urlPattern;
 	}
 
+	public CrawlerQueueMonitor getMonitor() {
+		return monitor;
+	}
+
+	public void setMonitor(CrawlerQueueMonitor monitor) {
+		this.monitor = monitor;
+	}
+
 	public Crawler(Store store, int threadNum, String inputUrl,
 			String urlPattern) {
 		super();
@@ -70,37 +81,26 @@ public class Crawler {
 		this.threadNum = threadNum;
 		this.inputUrl = inputUrl;
 		this.urlPattern = urlPattern;
+		monitor = new CrawlerQueueMonitor(true, threadNum);
 	}
 
 	public void start() {
 		for (int i = 0; i < threadNum; i++) {
 			Spider spider = new Spider(threadNum + "", urlPattern, inputUrl,
 					store, this);
-			Thread thread = new Thread(spider);
-			if (addSpider(spider, thread)) {
-				thread.start();
-			} else {
+			if (!monitor.addSpider(spider)) {
 				spider = null;
-				thread = null;
 			}
 		}
-	}
 
-	public synchronized boolean addSpider(Spider spider, Thread thread) {
-		for (Spider spider2 : spiders) {
-			if (spider2.getInputUrl().equals(spider.getInputUrl())) {
-				return false;
-			}
-		}
-		spiders.add(spider);
-		threads.add(thread);
-		return true;
+		monitor.setRunning(true);
+		monitor.start();
 	}
 
 	public void stop() {
-		for (Thread thread : threads) {
-			thread.interrupt();
-		}
+		monitor.setRunning(false);
+		monitor.stop();
+
 	}
 
 }

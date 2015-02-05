@@ -10,7 +10,7 @@ public class Demo1 {
 	public static void main(String[] args) throws Exception{
 		Store store = Store.getInstance("file:///d:/tt");
 		//^http://.*boful\\.com.*
-		Crawler crawler = new Crawler(store, 1, "http://tianlang519241.blog.163.com", "^http://.*");
+		Crawler crawler = new Crawler(store, 1, "http://www.boful.com", "^http://.*boful\\.com.*");
 		crawler.start();
 	}
 

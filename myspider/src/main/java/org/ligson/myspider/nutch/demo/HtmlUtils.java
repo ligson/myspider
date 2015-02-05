@@ -7,11 +7,19 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.entity.ContentType;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.util.EntityUtils;
 import org.apache.nutch.util.URLUtil;
 import org.cyberneko.html.parsers.DOMParser;
 import org.w3c.dom.Document;
@@ -21,8 +29,10 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
+
 /***
  * html工具
+ * 
  * @author ligson
  *
  */
@@ -154,5 +164,27 @@ public class HtmlUtils {
 		}
 
 		return result;
+	}
+
+	public static String getHtmlFileContent(String inputUrl) {
+		try {
+			HttpClient httpClient = new DefaultHttpClient();
+			HttpGet httpGet = new HttpGet(inputUrl);
+			HttpResponse httpResponse = httpClient.execute(httpGet);
+			if (!httpResponse.getLastHeader("Content-Type").getValue()
+					.contains("text/html")) {
+				return null;
+			}
+
+			HttpEntity entity = httpResponse.getEntity();
+			Charset charset = ContentType.getOrDefault(entity).getCharset();
+			if (charset == null) {
+				charset = Charset.forName("UTF-8");
+			}
+
+			return EntityUtils.toString(entity, charset);
+		} catch (Exception e) {
+			return null;
+		}
 	}
 }
