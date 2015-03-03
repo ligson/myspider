@@ -26,6 +26,7 @@ import org.apache.tika.metadata.Metadata;
 import org.apache.tika.parser.ParseContext;
 import org.apache.tika.parser.html.HtmlParser;
 import org.apache.tika.sax.BodyContentHandler;
+import org.ligson.myspider.utils.HtmlUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,9 +41,11 @@ public class Spider implements Runnable {
 	private String urlPattern;
 	private String inputUrl;
 	private Store store;
+	private Spider fatherSpider;
 	private List<Spider> sonSpiders = new ArrayList<Spider>();
 	private Crawler crawler;
 	private static Logger logger = LoggerFactory.getLogger(Spider.class);
+	private int level = 1;
 
 	public List<Spider> getSonSpiders() {
 		return sonSpiders;
@@ -92,14 +95,36 @@ public class Spider implements Runnable {
 		this.store = store;
 	}
 
-	public Spider(String id, String urlPattern, String inputUrl, Store store,
-			Crawler crawler) {
+	public Spider getFatherSpider() {
+		return fatherSpider;
+	}
+
+	public int getLevel() {
+		return level;
+	}
+
+	public void setLevel(int level) {
+		this.level = level;
+	}
+
+	public void setFatherSpider(Spider fatherSpider) {
+		this.fatherSpider = fatherSpider;
+	}
+
+	public Spider(String urlPattern, String inputUrl, Store store,
+			Crawler crawler, Spider fatherSpider) {
 		super();
-		this.id = id;
+		this.id = UUID.randomUUID().toString();
 		this.urlPattern = urlPattern;
 		this.store = store;
 		this.inputUrl = inputUrl;
 		this.crawler = crawler;
+		this.fatherSpider = fatherSpider;
+		if (this.fatherSpider == null) {
+			this.level = 1;
+		} else {
+			this.level = this.fatherSpider.getLevel() + 1;
+		}
 	}
 
 	@Override
@@ -187,8 +212,7 @@ public class Spider implements Runnable {
 		// Pattern pattern = Pattern.compile(urlPattern);
 		for (String href : hrefList) {
 			if (href.matches(urlPattern)) {
-				Spider spider = new Spider(UUID.randomUUID().toString(),
-						urlPattern, href, store, getCrawler());
+				Spider spider = new Spider(urlPattern, href, store, getCrawler(),this);
 
 				if (getCrawler().getMonitor().addSpider(spider)) {
 					sonSpiders.add(spider);

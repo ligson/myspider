@@ -86,8 +86,7 @@ public class Crawler {
 
 	public void start() {
 		for (int i = 0; i < threadNum; i++) {
-			Spider spider = new Spider(threadNum + "", urlPattern, inputUrl,
-					store, this);
+			Spider spider = new Spider(urlPattern, inputUrl, store, this, null);
 			if (!monitor.addSpider(spider)) {
 				spider = null;
 			}

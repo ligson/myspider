@@ -1,4 +1,4 @@
-package org.ligson.myspider.nutch.demo;
+package org.ligson.myspider.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -58,6 +58,38 @@ public class HtmlUtils {
 		}
 		// 对其它类型的节点，返回空值
 		return "";
+	}
+
+	public static List<String> getAllHrefValues(String baseUrl, String htmlText) {
+		List<String> hrefTags = new ArrayList<String>();
+		try {
+			// 生成html parser
+			DOMParser parser = new DOMParser();
+			parser.parse(htmlText);
+			Document doc = parser.getDocument();
+			// 获得body节点，以此为根，计算其文本内容
+			NodeList nodeList = doc.getElementsByTagName("a");
+			if (baseUrl.endsWith("/")) {
+				baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+			}
+			for (int i = 0; i < nodeList.getLength(); i++) {
+				Node node = nodeList.item(i);
+				NamedNodeMap namedNodeMap = node.getAttributes();
+				Node hrefNode = namedNodeMap.getNamedItem("href");
+				if (hrefNode != null) {
+					if ((hrefNode.getNodeValue() != null)
+							&& (!"".equals((hrefNode.getNodeValue() + "")
+									.trim()))) {
+						String nodeValue = hrefNode.getNodeValue();
+						hrefTags.add(nodeValue);
+					}
+				}
+			}
+		} catch (IOException | SAXException exception) {
+			exception.printStackTrace();
+		}
+
+		return getAbsPath(baseUrl, hrefTags);
 	}
 
 	public static List<String> getAllHrefValues(String baseUrl, File htmlFile) {
@@ -164,6 +196,26 @@ public class HtmlUtils {
 		}
 
 		return result;
+	}
+
+	public static String getFirstTagText(String htmlText, String tagName) {
+		// 生成html parser
+		DOMParser parser = new DOMParser();
+		try {
+			parser.parse(htmlText);
+			Document doc = parser.getDocument();
+			// 获得body节点，以此为根，计算其文本内容
+			NodeList nodeList = doc.getElementsByTagName(tagName);
+			if (nodeList.getLength() > 0) {
+				Node node = nodeList.item(0);
+				return node.getTextContent();
+			} else {
+				return null;
+			}
+		} catch (IOException | SAXException e) {
+			return null;
+		}
+
 	}
 
 	public static String getHtmlFileContent(String inputUrl) {
