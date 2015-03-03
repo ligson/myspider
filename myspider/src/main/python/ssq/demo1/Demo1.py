@@ -78,17 +78,37 @@ def calc1():
             if tmp.has_key(getattr(balls, "num" + str(i + 1))):
                 tmp[getattr(balls, "num" + str(i + 1))] = tmp[getattr(balls, "num" + str(i + 1))] + 1
             else:
-                tmp[getattr(balls, "num" + str(i + 1))] = 0
+                tmp[getattr(balls, "num" + str(i + 1))] = 1
         result.append(tmp)
     result2 = []
     for line in result:
         result2.append(sorted(line.iteritems(), key=lambda d:d[1], reverse=True))
     
+    result3 = []
     for line in result2:
         maxValue = line[0][1] 
         minValue = line[len(line) - 1][1]
+        tmp = []
+        for item in line:
+            if item[1] == maxValue or item[1] == minValue :
+                tmp.append(item)
+        result3.append(tmp)
+    
+    print u"出现最多和最少的"
+    for line in result3:
+        print line
+    
+    print u"没有出现的"
+    for line in result2:
         
-        
+        for item in line:
+            sum = 0
+            for i in range(1,34):
+                if i == item[0]:
+                    sum = sum + 1
+           
+                 
+    
 if __name__ == "__main__":
     # init_db()
     # importData()
